@@ -54,6 +54,10 @@ module Chocolate
     l.inject(0, :+)
   end
 
+  def Chocolate.list_or(l)
+    l.inject(false) { |sofar, v| (sofar or v) }
+  end
+
   def Chocolate.divide(bar)
     dims = inp_to_ints bar[0]
     pieces = inp_to_ints bar[1]
@@ -90,26 +94,23 @@ module Chocolate
     end
 
     solvable = false
-    for ps in partitions(pieces)
-      p1 = ps[0]
-      p2 = ps[1]
 
-      for i in 1..m
-        if (_divide(i, n, p1) and 
-            _divide(m-i, n, p2)) or 
-            (_divide(i, n, p2) and 
-             _divide(m-i, n, p1))
-          solvable = true
-        end
+    partitions(pieces).each do |partition|
+      p1 = partition[0]
+      p2 = partition[1]
+
+      row_breaks = (1..m).map do |i|
+        ((_divide(i, n, p1) and _divide(m-i, n, p2)) or 
+         (_divide(i, n, p2) and _divide(m-i, n, p1)))
       end
 
-      for i in 1..n
-        if (_divide(m, i, p1) and
-            _divide(m, n-i, p2)) or 
-            (_divide(m, i, p2) and
-             _divide(m, n-i, p1))
-          solvable = true
-        end
+      column_breaks = (1..n).map do |i|
+        ((_divide(m, i, p1) and _divide(m, n-i, p2)) or
+         (_divide(m, i, p2) and _divide(m, n-i, p1)))
+      end
+
+      if list_or(row_breaks) or list_or(column_breaks)
+        solvable = true
       end
     end
 
